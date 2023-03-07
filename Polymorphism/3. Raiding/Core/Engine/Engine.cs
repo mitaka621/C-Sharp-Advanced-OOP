@@ -1,5 +1,6 @@
 ﻿using Raiding.Factories;
 using Raiding.Factories.Interfaces;
+using Raiding.IO.Interfaces;
 using Raiding.Models.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -13,36 +14,53 @@ namespace Raiding.Core.Engine
     {
         private readonly ICollection<IBaseHero> heroes;
         IHeroFactory CreateHero;
-        public Engine(IHeroFactory factory)
+        IReader reader;
+        IWriter writer;
+        public Engine(IHeroFactory factory, IWriter writer,IReader reader)
         {
-            heroes=new List<IBaseHero>();
-            CreateHero= factory;
+            heroes = new List<IBaseHero>();
+            CreateHero = factory;
+            this.writer = writer;
+            this.reader = reader;
         }
         public void Run()
         {
 
-            int n = int.Parse(Console.ReadLine());
+            int n = int.Parse(reader.ReadLine());
 
-            for (int i = 0; i < n; i++)
-            {
+            while(n>0)
+            { 
+                try
+                {
+                    string name = reader.ReadLine();
 
-                string name = Console.ReadLine();
+                    string type = reader.ReadLine();
 
-                string type = Console.ReadLine();
+                    heroes.Add(CreateHero.Create(type, name));
+                    n--;
+                }
+                catch (ArgumentException ex)
+                {
+                    writer.WriteLine(ex.Message);
+                }
+                catch (Exception)
+                {
 
-                heroes.Add(CreateHero.Create(type, name));
+                    throw;
+                }
+               
             }
 
             foreach (var item in heroes)
             {
-                Console.WriteLine(item.CastAbility()); 
+                writer.WriteLine(item.CastAbility()); 
             }
-            int bossPower = int.Parse(Console.ReadLine());
+            int bossPower = int.Parse(reader.ReadLine());
 
             if (heroes.Sum(x=>x.Power)>= bossPower)
-                Console.WriteLine("Victory!");
+                writer.WriteLine("Victory!");
             else
-                Console.WriteLine("Defeat...");
+                writer.WriteLine("Defeat...");
         }
     }
 }
